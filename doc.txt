@@ -1,0 +1,92 @@
+##### UTILS 
+
+utils.timeSerieSpark : modulo che contiene le classi e funzioni per utilizzare i 
+                        modelli (DT, GBT, Arima e Prophet) in Spark.
+    - ML_TimeSerieSpark : classe per la gestione delle serie temporali con i modelli di ML
+    - Prophet_TimeSerieSpark : funzione per eseguire il modello Prophet con l'approccio delle 
+                                Pandas Function API in Spark (ma anche come normale funzione Python
+                                se il parametro 'mode' è settato a 'local')
+    - Arima_TimeSerieSpark : funzione per eseguire il modello Arima con l'approccio delle 
+                                Pandas Function API in Spark (ma anche come normale funzione Python
+                                se il parametro 'mode' è settato a 'local')
+
+utils.transformerSpark : modulo contenente all'interno i vari Transformer da utilizzare nella Pipeline di MLlib
+
+utils.transformerPandas : modulo contenente le classi per la gestione dei DataFrame Pandas utile ai modelli Arima e Prophet
+
+utils.visualizerData : modulo che contiene le funzioni per la visualizzazione dei risultati
+
+utils.handleData : modulo che contiene le funzionalità per la gestione dei DataFrame salvati nella      
+                    directory 'sink_big'
+
+utils.granularity : implementa la classe per la gestione dei diversi livelli di granularità
+
+utils.evaluation : implementa alcune funzioni per la valutazione dei risultati
+
+
+
+
+##### DATAFRAME DENSITA' TRAFFICO
+
+Nella directory 'sink_big' sono presenti i dati alle diverse granularità in riferimento delle sole 
+vie 'Via Pico Della Mirandola' e 'Stradello Soratore' (per questione di spazio di memorizzazione).
+
+
+
+
+
+##### UTILIZZO
+
+- ml_models.py : file per l'utilizzo dei modelli DT e GBT in Spark per le serie temporali A,B e C.
+                 Nella directory test/ml/... vengono scritti i risultati
+- classic_models.py : file per l'utilizzo dei modelli Arima e Prophet per le serie temporali A,B e C 
+                 (SENZA l'utilizzo di Spark in quanto si vogliono printare i risultati)
+                 Nella directory test/classic/... vengono scritti i risultati
+- pandas_function_api.py : file per l'utilizzo dei modelli Arima e Prophet su 5 serie temporali 
+                 con Spark mediante il metodo delle Pandas Function API
+
+I 3 file sopra citati si possono eseguire nel seguente modo :
+    $ python nome_file.py
+
+
+
+
+##### TEST
+
+Una volta eseguiti i file sopra citati, i risultati sono salvati nel seguente modo:
+Arima e Prophet (3 diversi tipi di previsione : 1_step, 1_hour, 12_hour):
+    test/classic/info_serie_temporale/nome_modello/livello_aggregazione/tipo_previsione
+
+DT e GBT (SOLO previsioni 1_step):
+    test/ml/info_serie_temporale/nome_modello/livello_aggregazione
+
+
+
+
+
+##### CONSIDERAZIONI
+Questo progetto si basa sui risultati ottenuti nella tesi di Francesco Barbanti, in cui i dati sono 
+aggregati a diverse finezze per poi essere memorizzati in appositi DataFrame nella directory 'sink_big'.
+A partire dagli stessi, si è voluto eseguire delle previsioni e valutare in che modo il livello di 
+aggregazione dei dati (ovvero 1 ora, 15 minuti, 1 minuto) influsce sulle stesse.
+I modelli considerati sono : Decision Tree, Gradient Boosted Tree, Arima e Prophet.
+
+Metodologia di valutazione : 
+    - 1_step : per tutti i modelli in funzione delle diverse aggregazioni
+    - 1_hour : per i modelli Arima e Prophet in funzione delle diverse aggregazioni (no per DT e GBT)
+    - 12_hour : per i modelli Arima e Prophet in funzione delle diverse aggregazioni (no per DT e GBT)
+
+Per quanto riguarda la valutazione dei modelli Arima e Prophet, viene eseguita una cross-validation 
+on a rolling basis che richiede un tempo di esecuzione piuttosto elevato per granularità fini, in particolare 
+per quelle di 1 minuto.
+La valutazione dei modelli DT e GBT invece, si basa su una normale suddivisione 80% e 20% rispettivamente in train 
+e in test set e i tempi sono molto più ridotti.
+
+Dai risultati ottenuti, si è potuto vedere come in alcuni casi, l'utilizzo di finezze piccole (come aggregati di 
+1 minuto) porti ad un miglioramento delle performance, ad esempio nella serie temporale B, mentre nella A e nella
+C ad un peggioramento.
+
+Inoltre, il modello Prophet si è visto che (così come è stato impostato) peggiora significativamente le performance
+nel caso di dati a frequenza elevata (1 minuto e 15 minuti).
+
+
